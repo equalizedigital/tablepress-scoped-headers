@@ -2,7 +2,7 @@
 /**
  * TablePress Scoped Headers Plugin.
  *
- * @package TablePress_Scoped_Headers
+ * @package TablePressScopedHeaders
  * @link    https://equalizedigital.com/
  * @since   1.0.0
  *
@@ -18,7 +18,7 @@
  * Text Domain:       tablepress-scoped-headers
  */
 
-namespace EqualizeDigital\TablePress_Scoped_Headers;
+namespace EqualizeDigital\TablePressScopedHeaders;
 
 // Prevent direct access to the file.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -36,7 +36,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 function add_scope_to_table_headers( $output, $table, $render_options ) {
 	$dom = new \DOMDocument();
 	libxml_use_internal_errors( true ); // Suppress warnings for invalid HTML.
-	$dom->loadHTML( $output );
+
+	// Set encoding to UTF-8
+	$output = mb_convert_encoding( $output, 'HTML-ENTITIES', 'UTF-8' );
+	$dom->loadHTML( '<!DOCTYPE html><html><body>' . $output . '</body></html>' );
 	libxml_clear_errors();
 	$xpath = new \DOMXPath( $dom );
 
@@ -55,6 +58,7 @@ function add_scope_to_table_headers( $output, $table, $render_options ) {
 	}
 
 	$output = $dom->saveHTML();
+	$output = preg_replace( '~<(?:!DOCTYPE|/?(?:html|body))[^>]*>\s*~i', '', $output ); // Remove added html/body tags
 	return $output;
 }
 add_filter( 'tablepress_table_output', __NAMESPACE__ . '\\add_scope_to_table_headers', 10, 3 );
